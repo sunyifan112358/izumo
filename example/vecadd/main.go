@@ -11,7 +11,7 @@ import "C"
 
 import (
 	"fmt"
-	// "unsafe"
+	"unsafe"
 	// "github.com/pkg/profile"
 
 	"github.com/sunyifan112358/izumo"
@@ -42,7 +42,15 @@ func initializeVector(v1, v2 []float32) {
 }
 
 func gpuVectorAdd(v1, v2, sum []float32) {
+	gV1 := izumo.NewGpuMem(length * 4)
+	gV2 := izumo.NewGpuMem(length * 4)
+	//gSum := izumo.NewGpuMem(length * 4)
 
+	gV1.CopyHostToDevice(unsafe.Pointer(&v1[0]))
+	gV2.CopyHostToDevice(unsafe.Pointer(&v2[0]))
+
+	gV2.CopyDeviceToHost(unsafe.Pointer(&sum[0]))
+	fmt.Println(sum)
 }
 
 func cpuVectorAdd(v1, v2, sum []float32) {
