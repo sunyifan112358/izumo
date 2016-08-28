@@ -1,7 +1,7 @@
 package izumo
 
 /*
-#cgo LDFLAGS: -L/usr/local/cuda/lib64 -lcudart
+#cgo LDFLAGS: -L/usr/local/cuda/lib64 -lcudart -lcuda
 #cgo CFLAGS: -I/usr/local/cuda/include/
 #include <cuda.h>
 #include <cuda_runtime.h>
