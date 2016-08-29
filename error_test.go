@@ -3,9 +3,7 @@ package izumo
 import "testing"
 
 func TestGetErrorNameForDriverError(t *testing.T) {
-	err := new(Error)
-	err.errorCode = 0
-	err.isDriverError = true
+	err := NewDriverError(0)
 
 	name := err.GetErrorName()
 
@@ -15,14 +13,31 @@ func TestGetErrorNameForDriverError(t *testing.T) {
 }
 
 func TestGetErrorNameForRuntimeError(t *testing.T) {
-	err := new(Error)
-	err.errorCode = 0
-	err.isDriverError = false
+	err := NewRuntimeError(0)
 
 	name := err.GetErrorName()
 
 	if name != "cudaSuccess" {
 		t.Errorf("Expected %s, but get %s", "cudaSuccess", name)
 	}
+}
 
+func TestGetErrorStringForDriverError(t *testing.T) {
+	err := NewDriverError(0)
+
+	name := err.GetErrorString()
+
+	if name != "no error" {
+		t.Errorf("Expected %s, but get %s", "no error", name)
+	}
+}
+
+func TestGetErrorStringForRuntimeError(t *testing.T) {
+	err := NewRuntimeError(0)
+
+	name := err.GetErrorString()
+
+	if name != "no error" {
+		t.Errorf("Expected %s, but get %s", "no error", name)
+	}
 }
