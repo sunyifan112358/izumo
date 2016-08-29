@@ -12,7 +12,7 @@ type Error struct {
 	isDriverError bool
 }
 
-// Create an instance of a runtime error
+// NewRuntimeError creates an instance of a runtime error
 func NewRuntimeError(code int) (err *Error) {
 	err = new(Error)
 	err.errorCode = code
@@ -20,7 +20,7 @@ func NewRuntimeError(code int) (err *Error) {
 	return
 }
 
-// Create an instance of a driver error
+// NewDriverError creates  an instance of a driver error
 func NewDriverError(code int) (err *Error) {
 	err = new(Error)
 	err.errorCode = code
@@ -48,4 +48,8 @@ func (err *Error) GetErrorString() (desc string) {
 		cStr = C.cudaGetErrorString(C.cudaError_t(err.errorCode))
 	}
 	return C.GoString(cStr)
+}
+
+func (e Error) String() string {
+	return e.GetErrorName() + ": " + e.GetErrorString()
 }

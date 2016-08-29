@@ -18,7 +18,7 @@ type GpuMem struct {
 	size        int
 }
 
-// Creates a GpuMem object and allocate memory on a GPU
+// NewGpuMem creates a GpuMem object and allocate memory on a GPU
 func NewGpuMem(size int) (gpuMem *GpuMem) {
 	gpuMem = new(GpuMem)
 	gpuMem.size = size
@@ -31,7 +31,7 @@ func NewGpuMem(size int) (gpuMem *GpuMem) {
 	return
 }
 
-// Copy memory from device to host
+// CopyDeviceToHost copies memory from device to host
 func (m *GpuMem) CopyDeviceToHost(hostPtr unsafe.Pointer) {
 	err := C.cudaMemcpy(hostPtr, m.cudaPointer, C.size_t(m.size), C.cudaMemcpyDeviceToHost)
 	if err != C.cudaSuccess {
@@ -41,11 +41,18 @@ func (m *GpuMem) CopyDeviceToHost(hostPtr unsafe.Pointer) {
 
 }
 
-// Copy memory from host to device
+// CopyHostToDevice copies memory from host to device
 func (m *GpuMem) CopyHostToDevice(hostPtr unsafe.Pointer) {
 	err := C.cudaMemcpy(m.cudaPointer, hostPtr, C.size_t(m.size), C.cudaMemcpyHostToDevice)
 	if err != C.cudaSuccess {
 		fmt.Println(err)
 		os.Exit(-1)
 	}
+}
+
+// GetGpuPointer returns the pointer that points to the memory allocaed on
+// the GPU.
+func (m *GpuMem) GetGpuPointer() (ptr unsafe.Pointer) {
+	ptr = m.cudaPointer
+	return
 }

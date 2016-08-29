@@ -20,3 +20,13 @@ func LoadModuleFromFile(moduleFilePath string) (module *Module, err *Error) {
 	}
 	return
 }
+
+// GetFunction retrieves a function from a module.
+func (m *Module) GetFunction(name string) (function *Function, err *Error) {
+	function = new(Function)
+	res := C.cuModuleGetFunction(function.cudaFunction, m.cudaModule, C.CString(name))
+	if res != C.CUDA_SUCCESS {
+		err = NewDriverError(int(res))
+	}
+	return
+}

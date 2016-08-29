@@ -11,14 +11,15 @@ import "C"
 
 import (
 	"fmt"
+	"log"
 	"unsafe"
 	// "github.com/pkg/profile"
 
 	"github.com/sunyifan112358/izumo"
 )
 
-var length int = 1024
-var threadPerBlock int = 512
+var length = 1024
+var threadPerBlock = 512
 
 func main() {
 	var v1, v2, gpuSum, cpuSum []float32
@@ -44,12 +45,29 @@ func initializeVector(v1, v2 []float32) {
 func gpuVectorAdd(v1, v2, sum []float32) {
 	gV1 := izumo.NewGpuMem(length * 4)
 	gV2 := izumo.NewGpuMem(length * 4)
-	//gSum := izumo.NewGpuMem(length * 4)
+	gSum := izumo.NewGpuMem(length * 4)
 
 	gV1.CopyHostToDevice(unsafe.Pointer(&v1[0]))
 	gV2.CopyHostToDevice(unsafe.Pointer(&v2[0]))
 
-	gV2.CopyDeviceToHost(unsafe.Pointer(&sum[0]))
+	module, err := izumo.LoadModuleFromFile("add_kernel.cu")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	function, err := module.GetFunction("add")
+	if err != nil {
+		log.Fatal(err)
+	}
+	gridDim := izumo.Dim3{length, 1, 1}
+	blockDim := izumo.Dim3{length / threadPerBlock, 1, 1}
+	err = function.LaunchKernel(gridDim, blockDim, 0,
+		gV1.GetGpuPointer(), gV2.GetGpuPointer(), gSum.GetGpuPointer())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gSum.CopyDeviceToHost(unsafe.Pointer(&sum[0]))
 	fmt.Println(sum)
 }
 
