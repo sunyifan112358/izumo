@@ -18,7 +18,7 @@ import (
 	"github.com/sunyifan112358/izumo"
 )
 
-var length = 1024
+var length = 512000
 var threadPerBlock = 512
 
 func main() {
@@ -43,14 +43,14 @@ func initializeVector(v1, v2 []float32) {
 }
 
 func gpuVectorAdd(v1, v2, sum []float32) {
-	gV1 := izumo.NewGpuMem(length * 4)
-	gV2 := izumo.NewGpuMem(length * 4)
-	gSum := izumo.NewGpuMem(length * 4)
+	gV1, _ := izumo.NewGpuMem(length * 4)
+	gV2, _ := izumo.NewGpuMem(length * 4)
+	gSum, _ := izumo.NewGpuMem(length * 4)
 
 	gV1.CopyHostToDevice(unsafe.Pointer(&v1[0]))
 	gV2.CopyHostToDevice(unsafe.Pointer(&v2[0]))
 
-	module, err := izumo.LoadModuleFromFile("add_kernel.cu")
+	module, err := izumo.LoadModuleFromFile("add_kernel.ptx")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,16 +59,15 @@ func gpuVectorAdd(v1, v2, sum []float32) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	gridDim := izumo.Dim3{length, 1, 1}
-	blockDim := izumo.Dim3{length / threadPerBlock, 1, 1}
-	err = function.LaunchKernel(gridDim, blockDim, 0,
-		gV1.GetGpuPointer(), gV2.GetGpuPointer(), gSum.GetGpuPointer())
+
+	gridDim := izumo.Dim3{length / threadPerBlock, 1, 1}
+	blockDim := izumo.Dim3{threadPerBlock, 1, 1}
+	err = function.LaunchKernel(gridDim, blockDim, 0, *gV1, *gV2, *gSum)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	gSum.CopyDeviceToHost(unsafe.Pointer(&sum[0]))
-	fmt.Println(sum)
 }
 
 func cpuVectorAdd(v1, v2, sum []float32) {
@@ -85,4 +84,5 @@ func verify(gpuSum, cpuSum []float32) {
 			break
 		}
 	}
+	fmt.Println("Succeed!")
 }
