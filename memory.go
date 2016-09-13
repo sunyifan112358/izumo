@@ -13,11 +13,11 @@ import (
 // A GpuMem is a piece of memory that is allocated on GPU
 type GpuMem struct {
 	cudaPointer unsafe.Pointer
-	size        int
+	size        uint
 }
 
 // NewGpuMem creates a GpuMem object and allocate memory on a GPU
-func NewGpuMem(size int) (gpuMem *GpuMem, err *Error) {
+func NewGpuMem(size uint) (gpuMem *GpuMem, err *Error) {
 	gpuMem = new(GpuMem)
 	gpuMem.size = size
 
@@ -34,7 +34,6 @@ func (m *GpuMem) CopyDeviceToHost(hostPtr unsafe.Pointer) (err *Error) {
 	res := C.cudaMemcpy(hostPtr, m.cudaPointer, C.size_t(m.size), C.cudaMemcpyDeviceToHost)
 	if res != C.cudaSuccess {
 		err = NewRuntimeError(int(res))
-		return
 	}
 	return
 }
@@ -44,7 +43,6 @@ func (m *GpuMem) CopyHostToDevice(hostPtr unsafe.Pointer) (err *Error) {
 	res := C.cudaMemcpy(m.cudaPointer, hostPtr, C.size_t(m.size), C.cudaMemcpyHostToDevice)
 	if res != C.cudaSuccess {
 		err = NewRuntimeError(int(res))
-		return
 	}
 	return
 }
@@ -53,5 +51,14 @@ func (m *GpuMem) CopyHostToDevice(hostPtr unsafe.Pointer) (err *Error) {
 // the GPU.
 func (m *GpuMem) GetGpuPointer() (ptr unsafe.Pointer) {
 	ptr = m.cudaPointer
+	return
+}
+
+// Free the GPU memory
+func (m *GpuMem) Free() (err *Error) {
+	res := C.cudaFree(m.cudaPointer)
+	if res != C.cudaSuccess {
+		err = NewRuntimeError(int(res))
+	}
 	return
 }
